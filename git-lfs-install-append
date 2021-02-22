@@ -1,9 +1,9 @@
 #!/bin/bash
 
-git-lfs-install-append () {
-  : 'Install git-hooks for git-lfs.'
-  : 'This is simular to git lfs install --manual.'
+# Install git-hooks for git-lfs.
+# This is simular to git lfs install --manual.
 
+git-lfs-install-append () {
   if [[ ! -d ./.git/hooks ]] ; then
     echo 'Here is not under git.' > /dev/stderr
     return 1
@@ -13,6 +13,8 @@ git-lfs-install-append () {
   git-lfs-install-append::post-checkout
   git-lfs-install-append::post-commit
   git-lfs-install-append::post-merge
+
+  echo 'Done!'
 }
 
 git-lfs-install-append::template () {
@@ -25,11 +27,12 @@ git-lfs-install-append::template () {
     echo '#!/bin/bash' > "$hook_path"
     echo "$line0" >> "$hook_path"
     echo "$line1" >> "$hook_path"
-    echo "\nDirectly installed: .git/hooks/$hook_name"
+
+    printf "\nDirectly installed: .git/hooks/$hook_name"
     return 0
   fi
 
-  echo "\n$hook_name:\n"
+  printf "\n$hook_name:\n"
   cat \
     <(echo "---------------------") \
     "$hook_path" \
@@ -45,7 +48,7 @@ git-lfs-install-append::template () {
     mv "$hook_path" "$tmp"
     cat "$tmp" <(echo "$line0") <(echo "$line1") > "$hook_path"
 
-    echo "\nsuccess!"
+    printf "\nsuccess!"
     echo "The previous file is here: $tmp"
   fi
 }
