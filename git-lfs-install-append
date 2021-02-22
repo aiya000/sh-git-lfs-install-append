@@ -1,0 +1,81 @@
+#!/bin/bash
+
+git-lfs-install-append () {
+  : 'Install git-hooks for git-lfs.'
+  : 'This is simular to git lfs install --manual.'
+
+  if [[ ! -d ./.git/hooks ]] ; then
+    echo 'Here is not under git.' > /dev/stderr
+    return 1
+  fi
+
+  git-lfs-install-append::pre-push
+  git-lfs-install-append::post-checkout
+  git-lfs-install-append::post-commit
+  git-lfs-install-append::post-merge
+}
+
+git-lfs-install-append::template () {
+  hook_name=$1
+  line0=$2
+  line1=$3
+  hook_path=./.git/hooks/$hook_name
+
+  if [[ ! -f $hook_path ]] ; then
+    echo '#!/bin/bash' > "$hook_path"
+    echo "$line0" >> "$hook_path"
+    echo "$line1" >> "$hook_path"
+    echo "\nDirectly installed: .git/hooks/$hook_name"
+    return 0
+  fi
+
+  echo "\n$hook_name:\n"
+  cat \
+    <(echo "---------------------") \
+    "$hook_path" \
+    <(echo '') \
+    <(echo "$line0") \
+    <(echo "$line1") \
+    <(echo "---------------------")
+  echo -n 'Do you make it to this? (y/n): '
+  read confirm
+
+  if [[ $confirm = 'y' ]] ; then
+    tmp=/tmp/$hook_name-$(date +'%Y-%m-%d-%H-%M-%b-%S')
+    mv "$hook_path" "$tmp"
+    cat "$tmp" <(echo "$line0") <(echo "$line1") > "$hook_path"
+
+    echo "\nsuccess!"
+    echo "The previous file is here: $tmp"
+  fi
+}
+
+git-lfs-install-append::pre-push () {
+  git-lfs-install-append::template \
+    pre-push \
+    $'command -v git-lfs >/dev/null 2>&1 || { echo >&2 "This repository is configured for Git LFS but \'git-lfs\' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting .git/hooks/pre-push."; exit 2; }' \
+    'git lfs pre-push "$@"'
+}
+
+git-lfs-install-append::post-checkout () {
+  git-lfs-install-append::template \
+    post-checkout \
+    $'command -v git-lfs >/dev/null 2>&1 || { echo >&2 "This repository is configured for Git LFS but \'git-lfs\' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting .git/hooks/post-checkout."; exit 2; }' \
+    'git lfs post-checkout "$@"'
+}
+
+git-lfs-install-append::post-commit () {
+  git-lfs-install-append::template \
+    post-commit \
+    $'command -v git-lfs >/dev/null 2>&1 || { echo >&2 "This repository is configured for Git LFS but \'git-lfs\' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting .git/hooks/post-commit."; exit 2; }' \
+    'git lfs post-commit "$@"'
+}
+
+git-lfs-install-append::post-merge () {
+  git-lfs-install-append::template \
+    post-merge \
+    $'command -v git-lfs >/dev/null 2>&1 || { echo >&2 "This repository is configured for Git LFS but \'git-lfs\' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting .git/hooks/post-merge."; exit 2; }' \
+    'git lfs post-merge "$@"'
+}
+
+git-lfs-install-append
