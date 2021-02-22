@@ -29,4 +29,8 @@ $ echo 'export PATH=$PATH:~/git/sh-git-lfs-install-append' >> ~/.bashrc  # or yo
 ```shell-session
 $ cd <a git project that never installed git-lfs hooks>
 $ git-lfs-install-append
+
+# Please input your choice to install git-lfs hooks
 ```
+
+![](example.gif)
